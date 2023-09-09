@@ -1,0 +1,20 @@
+[project]
+name = "complete-fastapi-example"
+description = "A more complete introduction to FastAPI"
+version = "0.1.0"
+authors = [
+    { name = "Bryan \"Beege\" Berry", email = "beege@codeseoul.org" }
+]
+dependencies = [
+    "fastapi ~= 0.101.0",
+    "uvicorn[standard] ~= 0.23.2"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest"
+]
+
+[project.scripts]
+app = "app.main:main"
