@@ -8,13 +8,14 @@ authors = [
 dependencies = [
     "fastapi ~= 0.101.0",
     "uvicorn[standard] ~= 0.23.2",
-    "pydantic-settings ~= 2.0.3"
+    "pydantic-settings ~= 2.0.3",
+    "psycopg2-binary ~= 2.9.7",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pre-commit",
-    "pytest"
+    "pytest",
 ]
 
 [project.scripts]

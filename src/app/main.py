@@ -1,19 +1,11 @@
 import uvicorn
 from fastapi import Depends, FastAPI
-from pydantic_settings import BaseSettings
 
+from app.database import database_cursor
 from app.routes import router
-from app.schemas import CreateUserResult
+from app.schemas import CreateUserBody, CreateUserResult
+from app.settings import Settings
 from app.util import check_auth, get_user_info
-
-
-# This Settings class automatically retrieves environment variables and stores them
-# in these class variables. Environment variable names are expected to be in all caps.
-# Type validation is done automatically.
-class Settings(BaseSettings):
-    host_address: str = "0.0.0.0"
-    port: int = 5000
-
 
 # Don't forget to create your Settings object to use it!
 settings = Settings()
@@ -58,7 +50,9 @@ def hello_name(name: str):
 # 3. We can validate response format using function return type hints.
 @app.post("/user")
 def create_user(
-    auth_role=Depends(check_auth), user_info=Depends(get_user_info)
+    auth_role=Depends(check_auth),
+    user_info: CreateUserBody = Depends(get_user_info),
+    db=Depends(database_cursor),
 ) -> CreateUserResult:
     # Note the FastAPI Depends() method. This allows us to specify additional
     # methods to run when we receive a request.
@@ -77,7 +71,7 @@ def create_user(
     # when used as a dependency. You can do some interesting behavior with
     # this, so be sure to consider it when you're building things.
     """
-    Creates a new user (but not really)
+    Creates a new user
     """
     # The above docstring comment will appear in our Swagger UI for the
     # API endpoint description.
@@ -86,6 +80,16 @@ def create_user(
         user_info.accepted = True
     else:
         user_info.accepted = False
+
+    db.execute(
+        f"""
+               insert into users (username, display_name)
+               values
+               (%s, %s)
+               """,
+        (user_info.name, user_info.display_name),
+    )
+
     # Note that due to this function returning a CreateUserResult type
     # object, we have to make sure `user_info` matches that type.
     return user_info
