@@ -1,6 +1,7 @@
-from fastapi import Depends, FastAPI
 import uvicorn
+from fastapi import Depends, FastAPI
 from pydantic_settings import BaseSettings
+
 from app.routes import router
 from app.schemas import CreateUserResult
 from app.util import check_auth, get_user_info
