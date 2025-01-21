@@ -10,4 +10,4 @@ class Settings(BaseSettings):
     db_host: str = "localhost"
     db_username: str = "root"
     db_password: str = "root"
-    db_database: str = "database"
+    db_database: str = "ecommerce"
