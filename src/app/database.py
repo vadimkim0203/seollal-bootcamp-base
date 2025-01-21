@@ -13,6 +13,7 @@ def database_cursor():
             minconn=1,
             maxconn=10,
             host=settings.db_host,
+            port=settings.db_port,
             user=settings.db_username,
             password=settings.db_password,
             dbname=settings.db_database,

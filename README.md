@@ -15,6 +15,7 @@ pre-commit install
 ```shell
 source .venv/bin/activate  # if not done already
 docker compose up -d
+alembic upgrade head
 run
 ```
 

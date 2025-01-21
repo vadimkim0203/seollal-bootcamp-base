@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     host_address: str = "0.0.0.0"
     port: int = 5000
     db_host: str = "localhost"
+    db_port: int = 5432
     db_username: str = "root"
     db_password: str = "root"
     db_database: str = "ecommerce"
