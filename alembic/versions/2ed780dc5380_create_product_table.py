@@ -26,8 +26,17 @@ def upgrade() -> None:
         sa.Column("name", sa.Unicode(255), index=True, nullable=False),
         sa.Column("description", sa.Text()),
         sa.Column("image", sa.String(1024)),
-        sa.Column("price", sa.Numeric(12, 2), index=True),
-        sa.Column("stock", sa.Integer, index=True),
+        sa.Column("price", sa.Numeric(12, 2), index=True, nullable=False),
+        sa.Column("stock", sa.Integer, index=True, nullable=False, server_default="0"),
+        sa.Column(
+            "created_at", sa.TIMESTAMP, server_default=sa.text("CURRENT_TIMESTAMP")
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP,
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            server_onupdate=sa.text("CURRENT_TIMESTAMP"),
+        ),
     )
 
 

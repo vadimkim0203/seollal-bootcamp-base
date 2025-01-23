@@ -8,15 +8,27 @@ authors = [
 dependencies = [
     "fastapi[standard] ~= 0.115.6",
     "pydantic-settings",
-    "psycopg2-binary ~= 2.9.10",
+    "asyncpg ~= 0.30.0",
+    "SQLAlchemy ~= 2.0.37",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pre-commit",
     "pytest",
+    "pytest-asyncio",
+    "pytest-mock",
     "alembic"
 ]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+    "--asyncio-mode=auto"
+]
+
+[tool.isort]
+profile = "black"
 
 [project.scripts]
 run = "app.main:main"
