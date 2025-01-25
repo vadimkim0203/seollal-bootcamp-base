@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 
 from app.schemas.base import BaseListRequest
 from app.schemas.product import (
@@ -32,9 +32,7 @@ async def list_products(
 ) -> ProductListResponse:
     return await product_service.list(
         list_query,
-        requesting_path="{public_base_url}/products".format(
-            public_base_url=settings.public_base_url
-        ),
+        requesting_path="{public_base_url}/products".format(public_base_url=settings.public_base_url),
     )
 
 
