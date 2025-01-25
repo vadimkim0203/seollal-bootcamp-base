@@ -122,4 +122,4 @@ async def test_paginate(product_repository: SqlAlchemyRepository):
     # THEN
     expected: list[ProductCreateResponse] = [x for x in products if x.price < 1500 and x.stock > 45]
     assert count == len(expected)
-    assert len(res) == len(expected)
+    assert set([x["id"] for x in res]) == set([x.id for x in expected])
