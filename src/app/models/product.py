@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import (
@@ -18,9 +17,9 @@ from sqlalchemy import (
 class Product(BaseModel):
     id: int
     name: str
-    description: Optional[str]
-    image: Optional[HttpUrl]
-    price: Optional[Decimal] = Field(max_digits=12, decimal_places=2)
+    description: str | None
+    image: HttpUrl | None
+    price: Decimal | None = Field(max_digits=12, decimal_places=2)
     stock: int = 0
 
 
