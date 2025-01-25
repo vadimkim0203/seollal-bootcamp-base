@@ -26,3 +26,7 @@ def main():
         port=settings.port,
         log_level="debug",
     )
+
+
+if __name__ == "__main__":
+    main()
