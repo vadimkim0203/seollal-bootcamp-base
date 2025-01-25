@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import List, Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -24,7 +23,7 @@ class ProductListResponseItem(Product):
 
 
 class ProductListResponse(BaseListResponse):
-    results: List[ProductListResponseItem]
+    results: list[ProductListResponseItem]
 
 
 class ProductDetailResponse(Product):

@@ -24,6 +24,13 @@ pre-commit install
 | DB_USERNAME | root | The username to use when logging into the PostgreSQL database server. Note that the default value should absolutely not be used in production. (Also note that "root" is also not the default superuser in PostgreSQL anyway.) |
 | DB_PASSWORD | root | The password to use when logging into the PostgreSQL database server. Note that the default value should absolutely not be used in production. |
 | DB_DATABASE | ecommerce | The name of the database on the PostgreSQL server to connect to. |
+=======
+
+## Formatting
+
+```shell
+ruff check --fix .
+```
 
 ## Running
 
