@@ -1,8 +1,11 @@
+import math
+import random
 from decimal import Decimal
-from typing import Sequence
+from typing import Any, Sequence
 
 from sqlalchemy import CursorResult, RowMapping, Select
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
+from sqlalchemy.sql.elements import ColumnElement, UnaryExpression
 
 from app.infra import SqlAlchemyRepository
 from app.models.in_memory.product import product_table
@@ -76,3 +79,47 @@ async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyR
     # THEN
     assert found is not None
     assert found["id"] == product.id
+
+
+async def test_paginate(product_repository: SqlAlchemyRepository):
+    # GIVEN
+    products: list[ProductCreateResponse] = []
+    for _ in range(40):
+        test_product = {
+            "name": "test product {rand}".format(rand=math.floor(random.random() * 10000)),
+            "description": "best product",
+            "price": random.randrange(1000, 3000),
+            "stock": random.randrange(10, 100),
+        }
+        res = await product_repository.insert(test_product)
+        products.append(ProductCreateResponse(**res))
+
+    # WHEN
+    query: Select = product_table.select()
+
+    filters: list[ColumnElement[bool]] = [
+        product_table.c.price < 1500,
+        product_table.c.stock > 45,
+    ]
+
+    ordering: list[UnaryExpression[Any]] = [
+        product_table.c.id.asc(),
+    ]
+
+    res: Sequence[RowMapping] = await product_repository.paginate(
+        select_statement=query,
+        filters=filters,
+        ordering=ordering,
+        offset=0,
+        size=20,
+    )
+
+    count: int = await product_repository.get_count(
+        select_statement=query,
+        filters=filters,
+    )
+
+    # THEN
+    expected: list[ProductCreateResponse] = [x for x in products if x.price < 1500 and x.stock > 45]
+    assert count == len(expected)
+    assert len(res) == len(expected)

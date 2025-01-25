@@ -30,6 +30,7 @@ addopts = [
     "--import-mode=importlib",
     "--asyncio-mode=auto"
 ]
+asyncio_default_fixture_loop_scope = "session"
 
 [project.scripts]
 run = "app.main:main"

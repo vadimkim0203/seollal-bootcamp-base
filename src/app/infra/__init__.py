@@ -2,11 +2,13 @@ import abc
 from typing import Any, Sequence, Tuple
 
 from sqlalchemy import (
+    ColumnElement,
     CursorResult,
     Delete,
     RowMapping,
     Select,
     Table,
+    UnaryExpression,
     func,
     literal_column,
     select,
@@ -40,8 +42,8 @@ class IRepository(abc.ABC):
     async def paginate(
         self,
         select_statement: Select,
-        filters: list[Any],
-        ordering: list[Any],
+        filters: list[ColumnElement[bool]],
+        ordering: list[UnaryExpression[Any]],
         offset: int,
         size: int,
     ) -> Sequence[RowMapping]:
@@ -78,11 +80,10 @@ class SqlAlchemyRepository(IRepository):
     async def paginate(
         self,
         select_statement: Select,
-        filters: list[Any],
-        ordering: list[Any],
+        filters: list[ColumnElement[bool]],
+        ordering: list[UnaryExpression[Any]],
         offset: int,
         size: int,
-        scalars: bool,
     ) -> Sequence[RowMapping]:
         if filters:
             select_statement = select_statement.where(*filters)
@@ -94,7 +95,7 @@ class SqlAlchemyRepository(IRepository):
 
     async def get_count(self, select_statement: Select, filters: list) -> int:
         count_select_statement: Select[Tuple[int]] = select(func.count()).select_from(
-            select_statement.where(*filters).subselect_statement()
+            select_statement.where(*filters).subquery()
         )
         result: CursorResult = await self.db.execute(count_select_statement)
         return result.scalar_one_or_none()
