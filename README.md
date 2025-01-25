@@ -10,6 +10,11 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
+## Formatting
+```shell
+make format
+```
+
 ## Running
 
 ```shell
