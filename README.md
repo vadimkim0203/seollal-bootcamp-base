@@ -45,17 +45,7 @@ run
 docker build . -t seollal-bootcamp
 ```
 
-## Stopping
-
-### Direct Run
-
-Ctrl + C, then
-
-```shell
-docker compose down
-```
-
-### Docker Run
+#### Run the Container
 
 ```shell
 docker compose up -d
@@ -67,4 +57,12 @@ docker run --name backend-server --rm \
     --env DB_HOST=database \
     --publish 8080:80 \
     seollal-bootcamp
+```
+
+## Stopping
+
+Ctrl + C, then
+
+```shell
+docker compose down
 ```
