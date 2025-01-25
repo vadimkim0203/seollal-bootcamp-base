@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import Depends
 from sqlalchemy import Connection, literal_column
 
@@ -41,7 +39,7 @@ class ProductService:
 
     async def list(
         self, list_query: BaseListRequest, requesting_path: str
-    ) -> List[ProductListResponse]:
+    ) -> list[ProductListResponse]:
         if list_query.page > 0:
             previous_page = (
                 "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
