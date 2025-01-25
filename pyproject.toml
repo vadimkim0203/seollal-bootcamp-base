@@ -28,9 +28,6 @@ addopts = [
     "--asyncio-mode=auto"
 ]
 
-[tool.isort]
-profile = "black"
-
 [project.scripts]
 run = "app.main:main"
 
