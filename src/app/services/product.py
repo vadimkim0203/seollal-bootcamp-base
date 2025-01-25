@@ -1,5 +1,6 @@
 from fastapi import Depends
-from sqlalchemy import Connection, literal_column
+from sqlalchemy import literal_column
+from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
 from app.database import database_connection
 from app.models.product import product_table
@@ -15,7 +16,7 @@ from app.schemas.product import (
 
 
 class ProductService:
-    def __init__(self, db: Connection = Depends(database_connection)):
+    def __init__(self, db: AsyncConnection = Depends(database_connection)):
         # It's not exactly a Connection, but this will help our auto-complete
         self.db = db
 
@@ -23,11 +24,7 @@ class ProductService:
         # Use the table object to help identify the columns to be inserted
         # Dump our model to a dictionary for SQLAlchemy to map the attributes to columns
         # Then return all columns
-        insert_statement = (
-            product_table.insert()
-            .values(product.model_dump())
-            .returning(literal_column("*"))
-        )
+        insert_statement = product_table.insert().values(product.model_dump()).returning(literal_column("*"))
         # Run the insert. Don't forget to await!
         result_records = await self.db.execute(insert_statement)
         # mappings() to map the results back to a dictionary
@@ -37,32 +34,24 @@ class ProductService:
         response = ProductCreateResponse(**result)
         return response
 
-    async def list(
-        self, list_query: BaseListRequest, requesting_path: str
-    ) -> list[ProductListResponse]:
+    async def list(self, list_query: BaseListRequest, requesting_path: str) -> list[ProductListResponse]:
         if list_query.page > 0:
-            previous_page = (
-                "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
-                    requesting_path=requesting_path,
-                    page=list_query.page - 1,
-                    count_per_page=list_query.count_per_page,
-                )
+            previous_page = "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
+                requesting_path=requesting_path,
+                page=list_query.page - 1,
+                count_per_page=list_query.count_per_page,
             )
         else:
             previous_page = ""
 
-        next_page = (
-            "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
-                requesting_path=requesting_path,
-                page=list_query.page + 1,
-                count_per_page=list_query.count_per_page,
-            )
+        next_page = "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
+            requesting_path=requesting_path,
+            page=list_query.page + 1,
+            count_per_page=list_query.count_per_page,
         )
 
         select_statement = (
-            product_table.select()
-            .limit(list_query.count_per_page)
-            .offset(list_query.page * list_query.count_per_page)
+            product_table.select().limit(list_query.count_per_page).offset(list_query.page * list_query.count_per_page)
         )
         result_records = await self.db.execute(select_statement)
         records = result_records.mappings().all()
@@ -81,9 +70,7 @@ class ProductService:
         return response
 
     # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-recap
-    async def update(
-        self, id: int, product: ProductUpdateRequest
-    ) -> ProductDetailResponse:
+    async def update(self, id: int, product: ProductUpdateRequest) -> ProductDetailResponse:
         product_detail = await self.get_detail(id)
         update_data = product.model_dump(exclude_unset=True)
         updated_item = product_detail.model_copy(update=update_data)

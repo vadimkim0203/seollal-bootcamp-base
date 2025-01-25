@@ -57,9 +57,18 @@ class SqlAlchemyRepository(IRepository):
         self.table = table
 
     async def insert(self, data: dict) -> RowMapping:
+        # Use the table object to help identify the columns to be inserted
+        # Dump our model to a dictionary for SQLAlchemy to map the attributes to columns
+        # Then return all columns
         insert_statement: ReturningInsert[Tuple] = self.table.insert().values(data).returning(literal_column("*"))
+        # Run the insert. Don't forget to await!
         result_records: CursorResult = await self.db.execute(insert_statement)
+        # mappings() to map the results back to a dictionary
+        # first() because we want the first (only) result
         return result_records.mappings().first()
+        # The "RowMapping" class supplies Python mapping (i.e. dictionary) access to the contents of the row.
+        # This includes support for testing of containment of specific keys (string column names or objects),
+        # as well as iteration of keys, values, and items:
 
     async def update(self, id: int, data: dict) -> RowMapping:
         update_statement: ReturningUpdate[Tuple] = (
