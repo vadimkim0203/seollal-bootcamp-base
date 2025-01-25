@@ -1,4 +1,7 @@
+from typing import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
 from app.settings import Settings
 
@@ -6,7 +9,7 @@ from app.settings import Settings
 __engine = None
 
 
-async def database_connection():
+async def database_connection() -> AsyncGenerator[AsyncConnection]:
     # Make sure we use the module-level object.
     global __engine
     if __engine is None:

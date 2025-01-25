@@ -1,8 +1,4 @@
-from decimal import Decimal
-
-from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import (
-    BigInteger,
     Column,
     Integer,
     Numeric,
@@ -12,25 +8,19 @@ from sqlalchemy import (
     Unicode,
 )
 
-from app.models import metadata
-
-
-class Product(BaseModel):
-    id: int
-    name: str
-    description: str | None
-    image: HttpUrl | None
-    price: Decimal | None = Field(max_digits=12, decimal_places=2)
-    stock: int = 0
-
+from app.models.in_memory import metadata
 
 product_table = Table(
     "product",
     metadata,
-    Column("id", BigInteger, primary_key=True, autoincrement=True),
+    Column("id", Integer, primary_key=True, autoincrement=True),
     Column("name", Unicode(255), index=True, nullable=False),
     Column("description", Text()),
     Column("image", String(1024)),
     Column("price", Numeric(12, 2), index=True),
     Column("stock", Integer, index=True, nullable=False, server_default="0"),
 )
+
+# one downside of sqlite is that it can't handle certain data types
+# in this case, it can't handle BigInteger for the 'id' column
+# so we create the exact same table for sqlite but use the Integer type instead

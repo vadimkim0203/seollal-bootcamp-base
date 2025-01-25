@@ -1,0 +1,78 @@
+from decimal import Decimal
+from typing import Sequence
+
+from sqlalchemy import CursorResult, RowMapping, Select
+from sqlalchemy.ext.asyncio.engine import AsyncConnection
+
+from app.infra import SqlAlchemyRepository
+from app.models.in_memory.product import product_table
+from app.schemas.product import ProductCreateResponse
+
+
+async def test_repository_insert(sqlite_conn: AsyncConnection, product_data: dict):
+    # GIVEN
+    repository = SqlAlchemyRepository(db=sqlite_conn, table=product_table)
+
+    # WHEN
+    await repository.insert(data=product_data)
+
+    # THEN
+    query: Select = product_table.select()
+    execution: CursorResult = await sqlite_conn.execute(query)
+    found: Sequence[RowMapping] = execution.mappings().all()
+    assert len(found) == 1
+    created = found[0]
+    for k, v in product_data.items():
+        assert created[k] == v
+
+
+async def test_repository_update(
+    sqlite_conn: AsyncConnection,
+    test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
+):
+    # GIVEN
+    repository, product = test_product_and_repository
+
+    # WHEN
+    update_req = {
+        "stock": product.stock - 1,
+        "price": int(product.price * Decimal(0.9)),
+    }
+    await repository.update(id=product.id, data=update_req)
+
+    # THEN
+    query: Select = product_table.select().where(product_table.c.id == product.id)
+    execution: CursorResult = await sqlite_conn.execute(query)
+    found: RowMapping | None = execution.mappings().first()
+    assert found is not None
+    assert found["stock"] == update_req["stock"]
+    assert found["price"] == update_req["price"]
+
+
+async def test_repository_delete(
+    sqlite_conn: AsyncConnection,
+    test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
+):
+    # GIVEN
+    repository, product = test_product_and_repository
+
+    # WHEN
+    await repository.delete(product.id)
+
+    # THEN
+    query: Select = product_table.select().where(product_table.c.id == product.id)
+    execution: CursorResult = await sqlite_conn.execute(query)
+    found: RowMapping | None = execution.mappings().first()
+    assert found is None
+
+
+async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse]):
+    # GIVEN
+    repository, product = test_product_and_repository
+
+    # WHEN
+    found = await repository.get_one(id=product.id)
+
+    # THEN
+    assert found is not None
+    assert found["id"] == product.id
