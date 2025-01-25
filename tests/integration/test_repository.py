@@ -74,7 +74,7 @@ async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyR
     repository, product = test_product_and_repository
 
     # WHEN
-    found = await repository.get_one(id=product.id)
+    found: RowMapping | None = await repository.get_one(id=product.id)
 
     # THEN
     assert found is not None
