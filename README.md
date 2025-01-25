@@ -12,7 +12,7 @@ pre-commit install
 
 ## Formatting
 ```shell
-make format
+ruff check --fix .
 ```
 
 ## Running
