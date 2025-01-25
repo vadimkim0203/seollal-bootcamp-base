@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
 from app.database import database_connection
 from app.models.product import product_table
-from app.schemas.base import BaseListRequest
+from app.schemas.base import BasePaginationRequest
 from app.schemas.product import (
     ProductCreateRequest,
     ProductCreateResponse,
@@ -34,12 +34,12 @@ class ProductService:
         response = ProductCreateResponse(**result)
         return response
 
-    async def list(self, list_query: BaseListRequest, requesting_path: str) -> list[ProductListResponse]:
+    async def paginate(self, list_query: BasePaginationRequest, requesting_path: str) -> list[ProductListResponse]:
         if list_query.page > 0:
             previous_page = "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
                 requesting_path=requesting_path,
                 page=list_query.page - 1,
-                count_per_page=list_query.count_per_page,
+                count_per_page=list_query.size,
             )
         else:
             previous_page = ""
@@ -47,12 +47,10 @@ class ProductService:
         next_page = "{requesting_path}?page={page}&count_per_page={count_per_page}".format(
             requesting_path=requesting_path,
             page=list_query.page + 1,
-            count_per_page=list_query.count_per_page,
+            count_per_page=list_query.size,
         )
 
-        select_statement = (
-            product_table.select().limit(list_query.count_per_page).offset(list_query.page * list_query.count_per_page)
-        )
+        select_statement = product_table.select().limit(list_query.size).offset(list_query.page * list_query.size)
         result_records = await self.db.execute(select_statement)
         records = result_records.mappings().all()
         response = ProductListResponse(
