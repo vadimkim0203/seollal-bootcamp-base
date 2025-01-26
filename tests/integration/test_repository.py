@@ -3,6 +3,7 @@ import random
 from decimal import Decimal
 from typing import Any, Sequence
 
+import pytest
 from sqlalchemy import CursorResult, RowMapping, Select
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
 from sqlalchemy.sql.elements import ColumnElement, UnaryExpression
@@ -12,16 +13,17 @@ from app.models.in_memory.product import product_table
 from app.schemas.product import ProductCreateResponse
 
 
-async def test_repository_insert(sqlite_conn: AsyncConnection, product_data: dict):
+@pytest.mark.asyncio(loop_scope="session")
+async def test_repository_insert(pg_conn: AsyncConnection, product_data: dict):
     # GIVEN
-    repository = SqlAlchemyRepository(db=sqlite_conn, table=product_table)
+    repository = SqlAlchemyRepository(db=pg_conn, table=product_table)
 
     # WHEN
     await repository.insert(data=product_data)
 
     # THEN
     query: Select = product_table.select()
-    execution: CursorResult = await sqlite_conn.execute(query)
+    execution: CursorResult = await pg_conn.execute(query)
     found: Sequence[RowMapping] = execution.mappings().all()
     assert len(found) == 1
     created = found[0]
@@ -29,8 +31,9 @@ async def test_repository_insert(sqlite_conn: AsyncConnection, product_data: dic
         assert created[k] == v
 
 
+@pytest.mark.asyncio(loop_scope="session")
 async def test_repository_update(
-    sqlite_conn: AsyncConnection,
+    pg_conn: AsyncConnection,
     test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
 ):
     # GIVEN
@@ -45,15 +48,16 @@ async def test_repository_update(
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
-    execution: CursorResult = await sqlite_conn.execute(query)
+    execution: CursorResult = await pg_conn.execute(query)
     found: RowMapping | None = execution.mappings().first()
     assert found is not None
     assert found["stock"] == update_req["stock"]
     assert found["price"] == update_req["price"]
 
 
+@pytest.mark.asyncio(loop_scope="session")
 async def test_repository_delete(
-    sqlite_conn: AsyncConnection,
+    pg_conn: AsyncConnection,
     test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
 ):
     # GIVEN
@@ -64,11 +68,12 @@ async def test_repository_delete(
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
-    execution: CursorResult = await sqlite_conn.execute(query)
+    execution: CursorResult = await pg_conn.execute(query)
     found: RowMapping | None = execution.mappings().first()
     assert found is None
 
 
+@pytest.mark.asyncio(loop_scope="session")
 async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse]):
     # GIVEN
     repository, product = test_product_and_repository
@@ -81,6 +86,7 @@ async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyR
     assert found["id"] == product.id
 
 
+@pytest.mark.asyncio(loop_scope="session")
 async def test_paginate(product_repository: SqlAlchemyRepository):
     # GIVEN
     products: list[ProductCreateResponse] = []

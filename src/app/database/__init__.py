@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql.dml import ReturningInsert, ReturningUpdate
 
 
-class IRepository(abc.ABC):
+class Repository(abc.ABC):
     @abc.abstractmethod
     async def insert(self, data: dict) -> RowMapping:
         raise NotImplementedError()
@@ -50,7 +50,7 @@ class IRepository(abc.ABC):
         raise NotImplementedError()
 
 
-class SqlAlchemyRepository(IRepository):
+class SqlAlchemyRepository(Repository):
     def __init__(self, db: AsyncConnection, table: Table):
         super().__init__()
         self.db = db

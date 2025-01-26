@@ -11,7 +11,7 @@ dependencies = [
     "pydantic-settings",
     "asyncpg ~= 0.30.0",
     "SQLAlchemy ~= 2.0.37",
-    "greenlet"
+    "greenlet ~= 3.1.1",
 ]
 
 [project.optional-dependencies]
@@ -22,7 +22,7 @@ dev = [
     "pytest-mock",
     "alembic",
     "ruff",
-    "aiosqlite"
+    "testcontainers"
 ]
 
 [tool.pytest.ini_options]
@@ -30,7 +30,7 @@ addopts = [
     "--import-mode=importlib",
     "--asyncio-mode=auto"
 ]
-asyncio_default_fixture_loop_scope = "session"
+# asyncio_default_fixture_loop_scope = "session"
 
 [project.scripts]
 run = "app.main:main"
