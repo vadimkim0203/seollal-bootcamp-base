@@ -1,0 +1,15 @@
+.git
+.venv
+.dockerignore
+Dockerfile
+docker-compose.yaml
+.pytest_cache
+.gitignore
+.pre-commit-config.yaml
+LICENSE
+README.md
+alembic/
+alembic.ini
+tests/
+__pycache__
+*.egg-info

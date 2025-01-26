@@ -1,5 +1,5 @@
 [project]
-name = "complete-fastapi-example"
+name = "seollal-bootcamp-2025-backend"
 description = "A more complete introduction to FastAPI"
 version = "0.1.0"
 authors = [
