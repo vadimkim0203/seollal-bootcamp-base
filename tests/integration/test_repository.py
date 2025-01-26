@@ -14,16 +14,16 @@ from app.schemas.product import ProductCreateResponse
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_repository_insert(pg_conn: AsyncConnection, product_data: dict):
+async def test_repository_insert(test_conn: AsyncConnection, product_data: dict):
     # GIVEN
-    repository = SqlAlchemyRepository(db=pg_conn, table=product_table)
+    repository = SqlAlchemyRepository(db=test_conn, table=product_table)
 
     # WHEN
     await repository.insert(data=product_data)
 
     # THEN
     query: Select = product_table.select()
-    execution: CursorResult = await pg_conn.execute(query)
+    execution: CursorResult = await test_conn.execute(query)
     found: Sequence[RowMapping] = execution.mappings().all()
     assert len(found) == 1
     created = found[0]
@@ -33,7 +33,7 @@ async def test_repository_insert(pg_conn: AsyncConnection, product_data: dict):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_repository_update(
-    pg_conn: AsyncConnection,
+    test_conn: AsyncConnection,
     test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
 ):
     # GIVEN
@@ -48,7 +48,7 @@ async def test_repository_update(
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
-    execution: CursorResult = await pg_conn.execute(query)
+    execution: CursorResult = await test_conn.execute(query)
     found: RowMapping | None = execution.mappings().first()
     assert found is not None
     assert found["stock"] == update_req["stock"]
@@ -57,7 +57,7 @@ async def test_repository_update(
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_repository_delete(
-    pg_conn: AsyncConnection,
+    test_conn: AsyncConnection,
     test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
 ):
     # GIVEN
@@ -68,7 +68,7 @@ async def test_repository_delete(
 
     # THEN
     query: Select = product_table.select().where(product_table.c.id == product.id)
-    execution: CursorResult = await pg_conn.execute(query)
+    execution: CursorResult = await test_conn.execute(query)
     found: RowMapping | None = execution.mappings().first()
     assert found is None
 

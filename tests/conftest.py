@@ -37,13 +37,13 @@ settings = Settings()
 # the fixture is created and deleted once per entire test session
 # test session means the beginning of the first test to the end of the final test
 @pytest.fixture(scope="session")
-def pg_container():
+def test_pg_container():
     """
     Spins up a PostgreSQL container for the entire test session.
     The container is torn down at the end of all tests.
     """
     container = PostgresContainer(
-        image="postgres:latest",
+        image="postgres:17-alpine",
         username=settings.db_username,
         password=settings.db_password,
         dbname=settings.db_database,
@@ -58,13 +58,13 @@ def pg_container():
 
 # 2) Create an AsyncEngine to connect to the container (async fixture).
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def pg_engine(pg_container: PostgresContainer) -> AsyncGenerator[AsyncEngine]:
+async def test_engine(test_pg_container: PostgresContainer) -> AsyncGenerator[AsyncEngine]:
     """
     Creates a single AsyncEngine pointing to the Postgres test container.
     Initializes (drop + create) tables once per entire session.
     """
-    async_url = pg_container.get_connection_url()
-    engine = create_async_engine(async_url, future=True)
+    db_url = test_pg_container.get_connection_url()
+    engine = create_async_engine(db_url, future=True)
     async with engine.connect() as connection:
         async with connection.begin():
             await connection.run_sync(metadata.drop_all)
@@ -78,17 +78,17 @@ async def pg_engine(pg_container: PostgresContainer) -> AsyncGenerator[AsyncEngi
 
 # 3) For each test function, yield a new connection and truncate data afterwards.
 @pytest_asyncio.fixture(scope="function", loop_scope="session")
-async def pg_conn(pg_engine: AsyncEngine) -> AsyncGenerator[AsyncConnection]:
+async def test_conn(test_engine: AsyncEngine) -> AsyncGenerator[AsyncConnection]:
     """
     Yields a new async connection for each test,
     and truncates all data from the tables afterwards.
     """
-    async with pg_engine.connect() as connection:
+    async with test_engine.connect() as connection:
         try:
             yield connection
         finally:
             # After each test, remove all data from the tables
-            async with pg_engine.connect() as cleanup_conn:
+            async with test_engine.connect() as cleanup_conn:
                 async with cleanup_conn.begin():
                     for table in reversed(metadata.sorted_tables):
                         await cleanup_conn.execute(table.delete())
@@ -106,8 +106,8 @@ def product_data() -> dict:
 
 
 @pytest_asyncio.fixture(loop_scope="session")
-async def product_repository(pg_conn: AsyncConnection) -> SqlAlchemyRepository:
-    repository = SqlAlchemyRepository(db=pg_conn, table=product_table)
+async def product_repository(test_conn: AsyncConnection) -> SqlAlchemyRepository:
+    repository = SqlAlchemyRepository(db=test_conn, table=product_table)
     return repository
 
 

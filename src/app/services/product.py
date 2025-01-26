@@ -60,12 +60,13 @@ class ProductService:
         )
         return response
 
-    async def get_detail(self, id: int) -> ProductDetailResponse:
+    async def get_detail(self, id: int) -> ProductDetailResponse | None:
         select_statement = product_table.select().where(product_table.c.id == id)
         result_records = await self.db.execute(select_statement)
         result = result_records.mappings().first()
-        response = ProductDetailResponse(**result)
-        return response
+        if result is not None:
+            return ProductDetailResponse(**result)
+        return result
 
     # https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-recap
     async def update(self, id: int, product: ProductUpdateRequest) -> ProductDetailResponse:
