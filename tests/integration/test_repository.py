@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio.engine import AsyncConnection
 from sqlalchemy.sql.elements import ColumnElement, UnaryExpression
 
 from app.database import SqlAlchemyRepository
-from app.models.product import product_table
-from app.schemas.product import ProductCreateResponse
+from app.models.product import Product, product_table
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -34,7 +33,7 @@ async def test_repository_insert(test_conn: AsyncConnection, product_data: dict)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_repository_update(
     test_conn: AsyncConnection,
-    test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
+    test_product_and_repository: tuple[SqlAlchemyRepository, Product],
 ):
     # GIVEN
     repository, product = test_product_and_repository
@@ -58,7 +57,7 @@ async def test_repository_update(
 @pytest.mark.asyncio(loop_scope="session")
 async def test_repository_delete(
     test_conn: AsyncConnection,
-    test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse],
+    test_product_and_repository: tuple[SqlAlchemyRepository, Product],
 ):
     # GIVEN
     repository, product = test_product_and_repository
@@ -74,7 +73,9 @@ async def test_repository_delete(
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyRepository, ProductCreateResponse]):
+async def test_repository_get_one(
+    test_product_and_repository: tuple[SqlAlchemyRepository, Product],
+):
     # GIVEN
     repository, product = test_product_and_repository
 
@@ -89,7 +90,7 @@ async def test_repository_get_one(test_product_and_repository: tuple[SqlAlchemyR
 @pytest.mark.asyncio(loop_scope="session")
 async def test_paginate(product_repository: SqlAlchemyRepository):
     # GIVEN
-    products: list[ProductCreateResponse] = []
+    products: list[Product] = []
     for _ in range(40):
         test_product = {
             "name": "test product {rand}".format(rand=math.floor(random.random() * 10000)),
@@ -98,7 +99,7 @@ async def test_paginate(product_repository: SqlAlchemyRepository):
             "stock": random.randrange(10, 100),
         }
         res = await product_repository.insert(test_product)
-        products.append(ProductCreateResponse(**res))
+        products.append(Product(**res))
 
     # WHEN
     query: Select = product_table.select()
@@ -126,6 +127,6 @@ async def test_paginate(product_repository: SqlAlchemyRepository):
     )
 
     # THEN
-    expected: list[ProductCreateResponse] = [x for x in products if x.price < 1500 and x.stock > 45]
+    expected: list[Product] = [x for x in products if x.price < 1500 and x.stock > 45]
     assert count == len(expected)
     assert set([x["id"] for x in res]) == set([x.id for x in expected])

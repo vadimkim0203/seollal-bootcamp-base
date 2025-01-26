@@ -14,8 +14,7 @@ from testcontainers.postgres import PostgresContainer
 from app.database import SqlAlchemyRepository
 from app.main import app
 from app.models import metadata
-from app.models.product import product_table
-from app.schemas.product import ProductCreateResponse
+from app.models.product import Product, product_table
 from app.settings import Settings
 
 
@@ -118,6 +117,6 @@ async def product_repository(test_conn: AsyncConnection) -> SqlAlchemyRepository
 async def test_product_and_repository(
     product_repository: SqlAlchemyRepository,
     product_data: dict,
-) -> tuple[SqlAlchemyRepository, ProductCreateResponse]:
+) -> tuple[SqlAlchemyRepository, Product]:
     result: RowMapping = await product_repository.insert(product_data)
-    return product_repository, ProductCreateResponse(**result)
+    return product_repository, Product(**result)
