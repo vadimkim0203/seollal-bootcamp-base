@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio.engine import AsyncConnection
 from sqlalchemy.sql.elements import ColumnElement, UnaryExpression
 
 from app.database import SqlAlchemyRepository
-from app.models.in_memory.product import product_table
+from app.models.product import product_table
 from app.schemas.product import ProductCreateResponse
 
 
