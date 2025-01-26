@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy import literal_column
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
-from app.database import database_connection
+from app.database.connection_provider import database_connection
 from app.models.product import product_table
 from app.schemas.base import BasePaginationRequest
 from app.schemas.product import (

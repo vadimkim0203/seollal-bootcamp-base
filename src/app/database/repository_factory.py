@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
-from app.database import database_connection
-from app.infra import IRepository, SqlAlchemyRepository
+from app.database import IRepository, SqlAlchemyRepository
+from app.database.connection_provider import database_connection
 from app.models.product import product_table
 
 

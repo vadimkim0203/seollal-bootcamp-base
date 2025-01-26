@@ -9,7 +9,7 @@ from sqlalchemy import RowMapping
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
-from app.infra import SqlAlchemyRepository
+from app.database import SqlAlchemyRepository
 from app.main import app
 from app.models.in_memory import metadata
 from app.models.in_memory.product import product_table
