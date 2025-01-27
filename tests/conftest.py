@@ -1,13 +1,20 @@
 import math
 import random
+from typing import AsyncGenerator
 
+import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from pytest import fixture
-from sqlalchemy import String, cast
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import RowMapping
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio.engine import AsyncConnection
+from testcontainers.postgres import PostgresContainer
 
+from app.database import SqlAlchemyRepository
 from app.main import app
-from app.models.product import product_table
+from app.models import metadata
+from app.models.product import Product, product_table
 from app.settings import Settings
 
 
@@ -16,60 +23,100 @@ def client():
     return TestClient(app)
 
 
-@fixture
-async def db_connection():
-    settings = Settings()
-    connection_string = (
-        "postgresql+asyncpg://{username}:{password}@{host}:{port}/{database}".format(
-            username=settings.db_username,
-            password=settings.db_password,
-            host=settings.db_host,
-            port=settings.db_port,
-            database=settings.db_database,
-        )
+# we can mock, stub or fake away the database during our tests
+# but I think the best way to test while using a relational database
+# 1. use the actual database we'll be using (postgres)
+# 2. use an in-memory database
+# we will go with option 1
+
+settings = Settings()
+
+
+# when the scope of the fixture is "session"
+# the fixture is created and deleted once per entire test session
+# test session means the beginning of the first test to the end of the final test
+@pytest.fixture(scope="session")
+def test_pg_container():
+    """
+    Spins up a PostgreSQL container for the entire test session.
+    The container is torn down at the end of all tests.
+    """
+    container = PostgresContainer(
+        image="postgres:17-alpine",
+        username=settings.db_username,
+        password=settings.db_password,
+        dbname=settings.db_database,
+        driver="asyncpg",
     )
-    # This stores the SQLAlchemy engine back in the module-level object.
-    # This ensures we don't accidentally create multiple connection pools.
-    engine = create_async_engine(connection_string)
-
-    # https://docs.sqlalchemy.org/en/20/tutorial/dbapi_transactions.html#committing-changes
-    # Automatically create a transaction. Rollback on error. Commit on completion of the context.
-    async with engine.connect() as connection:
-        # Yield to ensure we return back to this context in order to commit properly.
-        yield connection
-
-
-@fixture
-async def seed_product(db_connection):
-    insert_statement = (
-        product_table.insert()
-        .values(
-            {
-                "name": "test product {rand}".format(
-                    rand=math.floor(random.random() * 10000)
-                ),
-                "description": "best product",
-                "price": 1000,
-                "stock": 10,
-            }
-        )
-        .returning(
-            product_table.c.id,
-            product_table.c.name,
-            product_table.c.description,
-            product_table.c.image,
-            cast(product_table.c.price, String),
-            product_table.c.stock,
-        )
-    )
-    result_records = await db_connection.execute(insert_statement)
-    result = result_records.mappings().first()
-    await db_connection.commit()
+    container.start()
     try:
-        yield result
+        yield container
     finally:
-        delete_statement = product_table.delete().where(
-            product_table.c.id == result["id"]
-        )
-        await db_connection.execute(delete_statement)
-        await db_connection.commit()
+        container.stop()
+
+
+# 2) Create an AsyncEngine to connect to the container (async fixture).
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def test_engine(test_pg_container: PostgresContainer) -> AsyncGenerator[AsyncEngine]:
+    """
+    Creates a single AsyncEngine pointing to the Postgres test container.
+    Initializes (drop + create) tables once per entire session.
+    """
+    db_url = test_pg_container.get_connection_url()
+    engine = create_async_engine(db_url, future=True)
+    async with engine.connect() as connection:
+        async with connection.begin():
+            await connection.run_sync(metadata.drop_all)
+            await connection.run_sync(metadata.create_all)
+
+    yield engine
+
+    # Properly dispose of the engine at session teardown
+    await engine.dispose()
+
+
+# 3) For each test function, yield a new connection and truncate data afterwards.
+@pytest_asyncio.fixture(scope="function", loop_scope="session")
+async def test_conn(test_engine: AsyncEngine) -> AsyncGenerator[AsyncConnection]:
+    """
+    Yields a new async connection for each test,
+    and truncates all data from the tables afterwards.
+    """
+    async with test_engine.connect() as connection:
+        try:
+            yield connection
+        finally:
+            # After each test, remove all data from the tables
+            async with test_engine.connect() as cleanup_conn:
+                async with cleanup_conn.begin():
+                    for table in reversed(metadata.sorted_tables):
+                        await cleanup_conn.execute(table.delete())
+                    await cleanup_conn.commit()
+
+
+@pytest_asyncio.fixture
+def product_data() -> dict:
+    return {
+        "name": "test product {rand}".format(rand=math.floor(random.random() * 10000)),
+        "description": "best product",
+        "price": random.randrange(1000, 3000),
+        "stock": random.randrange(10, 100),
+    }
+
+
+@pytest_asyncio.fixture(loop_scope="session")
+async def product_repository(test_conn: AsyncConnection) -> SqlAlchemyRepository:
+    repository = SqlAlchemyRepository(db=test_conn, table=product_table)
+    return repository
+
+
+# fixtures work by pytest figuring out which fixture to use based on the fixture name
+# here, we defined the "product_data" fixture and "product_repository" above
+# and we use them in the fixture below by using the exact same name
+@pytest_asyncio.fixture(loop_scope="session")
+async def test_product_and_repository(
+    product_repository: SqlAlchemyRepository,
+    product_data: dict,
+) -> tuple[SqlAlchemyRepository, Product]:
+    result: RowMapping = await product_repository.insert(product_data)
+    return product_repository, Product(**result)

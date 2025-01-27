@@ -3,13 +3,15 @@ name = "seollal-bootcamp-2025-backend"
 description = "A more complete introduction to FastAPI"
 version = "0.1.0"
 authors = [
-    { name = "Bryan \"Beege\" Berry", email = "beege@codeseoul.org" }
+    { name = "Bryan \"Beege\" Berry", email = "beege@codeseoul.org" },
+    { name = "Jaeyoon \"Jason\" Cho", email = "jaeyoon.cho@codeseoul.org" }
 ]
 dependencies = [
     "fastapi[standard] ~= 0.115.6",
     "pydantic-settings",
     "asyncpg ~= 0.30.0",
     "SQLAlchemy ~= 2.0.37",
+    "greenlet ~= 3.1.1",
 ]
 
 [project.optional-dependencies]
@@ -19,7 +21,8 @@ dev = [
     "pytest-asyncio",
     "pytest-mock",
     "alembic",
-    "ruff"
+    "ruff",
+    "testcontainers"
 ]
 
 [tool.pytest.ini_options]

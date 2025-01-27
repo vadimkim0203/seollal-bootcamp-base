@@ -5,13 +5,14 @@ from sqlalchemy import (
     BigInteger,
     Column,
     Integer,
-    MetaData,
     Numeric,
     String,
     Table,
     Text,
     Unicode,
 )
+
+from app.models import metadata
 
 
 class Product(BaseModel):
@@ -25,8 +26,8 @@ class Product(BaseModel):
 
 product_table = Table(
     "product",
-    MetaData(),
-    Column("id", BigInteger, primary_key=True),
+    metadata,
+    Column("id", BigInteger, primary_key=True, autoincrement=True),
     Column("name", Unicode(255), index=True, nullable=False),
     Column("description", Text()),
     Column("image", String(1024)),

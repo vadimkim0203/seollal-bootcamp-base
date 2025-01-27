@@ -8,8 +8,8 @@ from app.schemas.base import BaseListResponse
 
 class ProductCreateRequest(BaseModel):
     name: str
-    description: str | None
-    image: HttpUrl | None
+    description: str | None = None
+    image: HttpUrl | None = None
     price: Decimal = Field(max_digits=12, decimal_places=2)
     stock: int | None = 0
 
