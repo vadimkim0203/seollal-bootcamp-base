@@ -12,6 +12,7 @@ dependencies = [
     "asyncpg ~= 0.30.0",
     "SQLAlchemy ~= 2.0.37",
     "greenlet ~= 3.1.1",
+    "uvicorn"
 ]
 
 [project.optional-dependencies]
