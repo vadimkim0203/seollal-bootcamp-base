@@ -21,6 +21,10 @@ from sqlalchemy.sql.dml import ReturningInsert, ReturningUpdate
 
 class Repository(abc.ABC):
     @abc.abstractmethod
+    async def commit(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     async def insert(self, data: dict) -> RowMapping:
         raise NotImplementedError()
 
@@ -57,6 +61,12 @@ class SqlAlchemyRepository(Repository):
         super().__init__()
         self.db = db
         self.table = table
+
+    async def commit(self):
+        try:
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
 
     async def insert(self, data: dict) -> RowMapping:
         # Use the table object to help identify the columns to be inserted
