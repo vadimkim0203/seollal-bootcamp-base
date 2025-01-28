@@ -32,6 +32,15 @@ pre-commit install
 ruff check --fix .
 ```
 
+## alembic
+```
+alembic revision -m "your migration name here"
+alembic upgrade head # migrate to latest migration
+alembic upgrade +1 # granular upgrade, upgrade by 1
+alembic downgrade -1  # downgrade by 1
+alembic downgrade base # downgrade to nothing
+```
+
 ## Running
 
 ### For Dev
