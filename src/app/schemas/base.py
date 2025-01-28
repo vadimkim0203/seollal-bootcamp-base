@@ -4,8 +4,9 @@ from pydantic import BaseModel
 
 class BaseListResponse(BaseModel):
     results: list
-    next: str
-    previous: str
+    page: int
+    size: int
+    count: int
 
 
 class BasePaginationRequest(BaseModel):
