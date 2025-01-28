@@ -118,7 +118,6 @@ async def test_product_and_repository(
     product_repository: SqlAlchemyRepository,
     product_data: dict,
 ) -> tuple[SqlAlchemyRepository, Product]:
-    await product_repository.start()
     result: RowMapping = await product_repository.insert(product_data)
     await product_repository.commit()
     return product_repository, Product(**result)
