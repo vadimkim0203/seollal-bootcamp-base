@@ -13,3 +13,12 @@ class Settings(BaseSettings):
     db_username: str = "root"
     db_password: str = "root"
     db_database: str = "ecommerce"
+
+    def get_db_url(self):
+        return "postgresql+asyncpg://{username}:{password}@{host}:{port}/{database}".format(
+            username=self.db_username,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_database,
+        )
