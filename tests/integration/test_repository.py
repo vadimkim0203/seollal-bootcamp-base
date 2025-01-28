@@ -96,6 +96,7 @@ async def test_repository_get_one(
 @pytest.mark.asyncio(loop_scope="session")
 async def test_paginate(product_repository: SqlAlchemyRepository):
     # GIVEN
+    product_repository.start()
     products: list[Product] = []
     for _ in range(40):
         test_product = {
@@ -106,6 +107,7 @@ async def test_paginate(product_repository: SqlAlchemyRepository):
         }
         res = await product_repository.insert(test_product)
         products.append(Product(**res))
+    product_repository.commit()
 
     # WHEN
     query: Select = product_table.select()
