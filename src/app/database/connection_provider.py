@@ -11,13 +11,7 @@ async def database_connection():
     global __engine
     if __engine is None:
         settings = Settings()
-        connection_string = "postgresql+asyncpg://{username}:{password}@{host}:{port}/{database}".format(
-            username=settings.db_username,
-            password=settings.db_password,
-            host=settings.db_host,
-            port=settings.db_port,
-            database=settings.db_database,
-        )
+        connection_string = settings.get_db_url()
         # This stores the SQLAlchemy engine back in the module-level object.
         # This ensures we don't accidentally create multiple connection pools.
         __engine = create_async_engine(connection_string)

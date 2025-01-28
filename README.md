@@ -6,7 +6,7 @@
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev]" # the command to install all of the dependencies
 pre-commit install
 ```
 
