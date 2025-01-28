@@ -1,16 +1,7 @@
 from decimal import Decimal
 
+import sqlalchemy as sa
 from pydantic import BaseModel, Field, HttpUrl
-from sqlalchemy import (
-    BigInteger,
-    Column,
-    Integer,
-    Numeric,
-    String,
-    Table,
-    Text,
-    Unicode,
-)
 
 from app.models import metadata
 
@@ -24,13 +15,13 @@ class Product(BaseModel):
     stock: int = 0
 
 
-product_table = Table(
+product_table = sa.Table(
     "product",
     metadata,
-    Column("id", BigInteger, primary_key=True, autoincrement=True),
-    Column("name", Unicode(255), index=True, nullable=False),
-    Column("description", Text()),
-    Column("image", String(1024)),
-    Column("price", Numeric(12, 2), index=True),
-    Column("stock", Integer, index=True, nullable=False, server_default="0"),
+    sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
+    sa.Column("name", sa.Unicode(255), index=True, nullable=False),
+    sa.Column("description", sa.Text()),
+    sa.Column("image", sa.String(1024)),
+    sa.Column("price", sa.Numeric(12, 2), index=True),
+    sa.Column("stock", sa.Integer, index=True, nullable=False, server_default="0"),
 )
