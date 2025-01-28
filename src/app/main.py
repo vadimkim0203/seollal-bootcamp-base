@@ -26,3 +26,4 @@ def main():
         port=settings.port,
         log_level="debug",
     )
+
