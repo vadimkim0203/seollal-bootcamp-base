@@ -18,7 +18,7 @@ async def test_repository_insert(test_conn: AsyncConnection, product_data: dict)
     repository = SqlAlchemyRepository(db=test_conn, table=product_table)
 
     # WHEN
-    await repository.db.start()
+    await repository.start()
     await repository.insert(data=product_data)
     await repository.commit()
 
@@ -45,7 +45,7 @@ async def test_repository_update(
         "stock": product.stock - 1,
         "price": int(product.price * Decimal(0.9)),
     }
-    await repository.db.start()
+    await repository.start()
     await repository.update(id=product.id, data=update_req)
     await repository.commit()
 
@@ -67,7 +67,7 @@ async def test_repository_delete(
     repository, product = test_product_and_repository
 
     # WHEN
-    await repository.db.start()
+    await repository.start()
     await repository.delete(product.id)
     await repository.commit()
 

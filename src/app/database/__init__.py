@@ -21,6 +21,10 @@ from sqlalchemy.sql.dml import ReturningInsert, ReturningUpdate
 
 class Repository(abc.ABC):
     @abc.abstractmethod
+    async def start(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     async def commit(self):
         raise NotImplementedError()
 
@@ -61,6 +65,12 @@ class SqlAlchemyRepository(Repository):
         super().__init__()
         self.db = db
         self.table = table
+
+    async def start(self):
+        try:
+            await self.db.start()
+        except Exception:
+            ...
 
     async def commit(self):
         try:
