@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
+from app.routes.order import router as order_router
 from app.routes.product import router as product_router
 from app.settings import Settings
 
@@ -13,6 +14,7 @@ app = FastAPI()
 # logic. Note that we can define a prefix and organize routers by
 # prefix. This allows you to logically split your application logic.
 app.include_router(product_router, prefix="/products")
+app.include_router(order_router, prefix="/orders")
 
 
 # From our pyproject.toml, we define this main function as our entrypoint.
@@ -26,4 +28,3 @@ def main():
         port=settings.port,
         log_level="debug",
     )
-
