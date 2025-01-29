@@ -82,3 +82,23 @@ Ctrl + C, then
 ```shell
 docker compose down
 ```
+
+## Deploying Infrastructure
+
+### Setup
+
+1. After installing Azure CLI and logging in with `az login`, run `azure account show` to get your subscription information.
+2. In the output, fetch the `"id"` value.
+3. Create your `.env` file: `cp .env.template .env`.
+4. Paste your subscription ID into the `.env` file.
+5. Set up terraform: `terraform init`.
+6. Deploy your web app: `terraform apply`.
+    * DON'T FORGET TO TEARDOWN SO YOU DON'T SPEND MONEY.
+
+### Teardown
+
+DON'T FORGET TO DO THIS:
+
+```shell
+terraform destroy
+```
