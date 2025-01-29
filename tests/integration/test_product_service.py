@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import CursorResult, RowMapping, Select
 from sqlalchemy.ext.asyncio.engine import AsyncConnection
 
+from app.database import SqlAlchemyRepository
 from app.models.product import product_table
 from app.schemas.product import ProductCreateRequest, ProductCreateResponse, ProductDetailResponse, ProductUpdateRequest
 from app.services.product import ProductService
@@ -17,9 +18,9 @@ from app.services.product import ProductService
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_product_create(test_conn: AsyncConnection, product_data: dict):
+async def test_product_create(product_repository: SqlAlchemyRepository, test_conn: AsyncConnection, product_data: dict):
     # GIVEN
-    service = ProductService(db=test_conn)
+    service = ProductService(repository=product_repository)
 
     # WHEN
     await service.create(product=ProductCreateRequest(**product_data))
@@ -35,16 +36,20 @@ async def test_product_create(test_conn: AsyncConnection, product_data: dict):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_product_update(test_conn: AsyncConnection, product_data: dict):
+async def test_product_update(
+    product_repository: SqlAlchemyRepository,
+    test_conn: AsyncConnection,
+    product_data: dict,
+):
     # GIVEN
-    service = ProductService(db=test_conn)
+    service = ProductService(repository=product_repository)
     product: ProductCreateResponse = await service.create(product=ProductCreateRequest(**product_data))
 
+    product_data["stock"] = product.stock + 1
+    product_data["price"] = round(product.price * Decimal(0.9), 2)
+
     # WHEN
-    update_req = ProductUpdateRequest(
-        stock=product.stock - 1,
-        price=int(product.price * Decimal(0.9)),
-    )
+    update_req = ProductUpdateRequest(**product_data)
 
     await service.update(
         id=product.id,
@@ -61,9 +66,13 @@ async def test_product_update(test_conn: AsyncConnection, product_data: dict):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_product_delete(test_conn: AsyncConnection, product_data: dict):
+async def test_product_delete(
+    product_repository: SqlAlchemyRepository,
+    test_conn: AsyncConnection,
+    product_data: dict,
+):
     # GIVEN
-    service = ProductService(db=test_conn)
+    service = ProductService(repository=product_repository)
     product: ProductCreateResponse = await service.create(product=ProductCreateRequest(**product_data))
 
     # WHEN
@@ -77,9 +86,12 @@ async def test_product_delete(test_conn: AsyncConnection, product_data: dict):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_product_get_one(test_conn: AsyncConnection, product_data: dict):
+async def test_product_get_one(
+    product_repository: SqlAlchemyRepository,
+    product_data: dict,
+):
     # GIVEN
-    service = ProductService(db=test_conn)
+    service = ProductService(repository=product_repository)
     product: ProductCreateResponse = await service.create(product=ProductCreateRequest(**product_data))
 
     # WHEN
@@ -88,10 +100,3 @@ async def test_product_get_one(test_conn: AsyncConnection, product_data: dict):
     # THEN
     assert found is not None
     assert found.id == product.id
-
-
-@pytest.mark.asyncio(loop_scope="session")
-async def test_product_paginate(test_conn: AsyncConnection, product_data: dict):
-    _ = ProductService(db=test_conn)
-    # I have no idea what the current pagination method is doing pagination lol
-    assert True
