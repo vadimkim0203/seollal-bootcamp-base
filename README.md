@@ -87,12 +87,13 @@ docker compose down
 
 ### Setup
 
-1. After installing Azure CLI and logging in with `az login`, run `azure account show` to get your subscription information.
-2. In the output, fetch the `"id"` value.
-3. Create your `.env` file: `cp .env.template .env`.
-4. Paste your subscription ID into the `.env` file.
-5. Set up terraform: `terraform init`.
-6. Deploy your web app: `source .env && terraform apply`.
+1. Update `main.tf` to use a unique name for the Linux web app.
+2. After installing Azure CLI and logging in with `az login`, run `azure account show` to get your subscription information.
+3. In the output, fetch the `"id"` value.
+4. Create your `.env` file: `cp .env.template .env`.
+5. Paste your subscription ID into the `.env` file.
+6. Set up terraform: `terraform init`.
+7. Deploy your web app: `source .env && terraform apply`.
     * DON'T FORGET TO TEARDOWN SO YOU DON'T SPEND MONEY.
 
 ### Teardown
