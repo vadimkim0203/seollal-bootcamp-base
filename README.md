@@ -92,7 +92,7 @@ docker compose down
 3. Create your `.env` file: `cp .env.template .env`.
 4. Paste your subscription ID into the `.env` file.
 5. Set up terraform: `terraform init`.
-6. Deploy your web app: `terraform apply`.
+6. Deploy your web app: `source .env && terraform apply`.
     * DON'T FORGET TO TEARDOWN SO YOU DON'T SPEND MONEY.
 
 ### Teardown
