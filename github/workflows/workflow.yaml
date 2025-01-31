@@ -1,0 +1,33 @@
+on:
+- push
+
+name: Build and deploy
+
+jobs:
+  build-and-deploy:
+  runs-on: ubuntu latest
+  steps:
+  - name: "Checkout Github Action"
+  - uses: actions/checkout@v2
+
+  - name: "Docker login"
+    uses: azure/docker-login@v1
+    with:
+      login-server: c027de55-5917-4a92-9d0e-8534bd77618b
+      username: ${{ secrets.REGISTRY_USERNAME }}
+      password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: "Image build and push"
+       uses: docker/build-push-action@v5
+       with:
+       push: true
+       tags: c027de55-5917-4a92-9d0e-8534bd77618b.azurecr.io/azuredevops:latest
+
+       - name: Deploy
+       uses: azure/webapps-deploy@v2
+       with: 
+       app-name: example-web-app-codeseoul-vadimkim0203
+       images: 
+
+
+

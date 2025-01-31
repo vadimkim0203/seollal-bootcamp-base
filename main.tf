@@ -9,11 +9,12 @@ terraform {
 
 provider "azurerm" {
   features {}
+  subscription_id = "c027de55-5917-4a92-9d0e-8534bd77618b"
 }
 
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "Korea South"
+  location = "westeurope"
 }
 
 resource "azurerm_service_plan" "example" {
@@ -24,7 +25,7 @@ resource "azurerm_service_plan" "example" {
   sku_name            = "B1"
 }
 resource "azurerm_linux_web_app" "example" {
-  name                = "example-web-app-codeseoul-beege" # Must be globally unique
+  name                = "example-web-app-codeseoul-vadimkim0203" # Must be globally unique
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   service_plan_id     = azurerm_service_plan.example.id
@@ -33,12 +34,26 @@ resource "azurerm_linux_web_app" "example" {
     container_registry_use_managed_identity = false
 
     application_stack {
-      docker_image_name   = "nginx:latest"
-      docker_registry_url = "https://index.docker.io"
+      docker_image_name   = "bootcamp:latest"
+      docker_registry_url = "https://${azurerm_container_registry.registry.login_server}"
+      docker_registry_username = azurerm_container_registry.registry.admin_username
+      docker_registry_password = azurerm_container_registry.registry.admin_password
     }
   }
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
   }
+
+  lifecycle {
+    ignore_changes = [ site_config[0].application_stack[0].docker_image_name ]
+  }
+}
+
+resource "azurerm_container_registry" "registry" {
+  name     = "vadimkim0203"
+  resource_group_name = azurerm_resource_group.example.name
+  location = azurerm_resource_group.example.location
+  sku = "Basic"
+  admin_enabled = true
 }
